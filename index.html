@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>M+N GIT ACTIVITY</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --red:#ff2200; --red-dim:#661100; --red-dark:#220800;
+  --amber:#ffaa00; --green:#00ff88; --blue:#4488ff;
+  --bg:#060200;
+}
+body {
+  background:var(--bg); color:var(--red);
+  font-family:'Share Tech Mono', 'Courier New', monospace;
+  min-height:100vh; overflow-x:hidden;
+}
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9998;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,0,0,0.025) 2px,rgba(255,0,0,0.025) 4px);
+}
+.grid-bg {
+  position:fixed; inset:0; z-index:0;
+  background-image:linear-gradient(rgba(255,0,0,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,0,0.03) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ── 헤더 ── */
+.header {
+  position:sticky; top:0; z-index:100;
+  background:rgba(10,2,0,0.92); border-bottom:1px solid var(--red-dark);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 24px; height:48px; backdrop-filter:blur(6px);
+}
+.logo { font-family:'Orbitron',sans-serif; font-size:15px; color:var(--amber); letter-spacing:4px; text-shadow:0 0 10px var(--amber); }
+.header-center { font-size:10px; letter-spacing:4px; color:var(--red-dim); }
+.header-right { display:flex; align-items:center; gap:20px; font-size:10px; color:var(--red-dim); }
+.dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--green); margin-right:5px; box-shadow:0 0 6px var(--green); animation:blink 1.2s step-end infinite; }
+@keyframes blink { 50%{opacity:0} }
+#clock { color:var(--amber); letter-spacing:2px; }
+
+/* ── 토큰 입력 화면 ── */
+#token-screen {
+  position:fixed; inset:0; z-index:200;
+  background:rgba(6,2,0,0.97); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px;
+}
+#token-screen.hidden { display:none; }
+.token-box { border:1px solid var(--red-dim); padding:32px 40px; background:rgba(20,4,0,0.8); text-align:center; max-width:480px; width:90%; }
+.token-box h2 { font-family:'Orbitron',sans-serif; color:var(--amber); font-size:14px; letter-spacing:4px; margin-bottom:16px; }
+.token-box p { font-size:11px; color:var(--red-dim); letter-spacing:1px; margin-bottom:20px; line-height:1.8; }
+.token-input {
+  width:100%; background:rgba(30,6,0,0.8); border:1px solid var(--red-dim); color:var(--amber);
+  font-family:inherit; font-size:12px; padding:8px 12px; outline:none; letter-spacing:1px;
+}
+.token-input:focus { border-color:var(--amber); }
+.token-btn {
+  margin-top:12px; width:100%; background:rgba(255,170,0,0.1); border:1px solid var(--amber);
+  color:var(--amber); font-family:inherit; font-size:11px; letter-spacing:4px;
+  padding:10px; cursor:pointer;
+}
+.token-btn:hover { background:rgba(255,170,0,0.2); }
+.token-hint { font-size:10px; color:rgba(255,170,0,0.4); margin-top:10px; }
+
+/* ── 레이아웃 ── */
+#app { position:relative; z-index:1; padding:20px 20px 40px; display:none; }
+#app.visible { display:block; }
+
+/* ── 레포 선택 탭 ── */
+.repo-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.repo-tab {
+  font-size:10px; letter-spacing:3px; padding:6px 14px;
+  border:1px solid var(--red-dark); color:var(--red-dim); cursor:pointer; background:transparent;
+  font-family:inherit;
+}
+.repo-tab:hover { border-color:var(--red-dim); color:var(--red); }
+.repo-tab.active { border-color:var(--amber); color:var(--amber); text-shadow:0 0 6px var(--amber); background:rgba(255,170,0,0.06); }
+
+/* ── 통계 카드 ── */
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:20px; }
+.stat-card {
+  border:1px solid var(--red-dark); background:rgba(20,4,0,0.5); padding:14px 16px;
+}
+.stat-label { font-size:9px; letter-spacing:3px; color:var(--red-dim); margin-bottom:6px; }
+.stat-value { font-size:22px; color:var(--amber); text-shadow:0 0 8px var(--amber); }
+.stat-sub { font-size:9px; color:var(--red-dim); margin-top:3px; }
+
+/* ── 커밋 리스트 ── */
+.section-title {
+  font-size:10px; letter-spacing:4px; color:var(--amber);
+  border-bottom:1px solid var(--red-dark); padding-bottom:8px; margin-bottom:12px;
+}
+.commit-list { display:flex; flex-direction:column; gap:6px; }
+.commit-row {
+  display:grid; grid-template-columns:110px 1fr auto;
+  gap:12px; align-items:start;
+  border:1px solid rgba(255,34,0,0.08); background:rgba(16,3,0,0.5);
+  padding:10px 14px; transition:background 0.15s;
+}
+.commit-row:hover { background:rgba(30,6,0,0.7); border-color:var(--red-dark); }
+.commit-row.latest { border-color:rgba(255,170,0,0.25); }
+.commit-sha { font-size:11px; color:var(--red-dim); }
+.commit-sha .sha-code { color:var(--green); font-size:12px; text-shadow:0 0 4px var(--green); }
+.commit-time { font-size:9px; color:var(--red-dim); margin-top:3px; }
+.commit-msg { font-size:12px; color:var(--red); line-height:1.5; word-break:break-word; }
+.commit-msg .type-tag { color:var(--amber); text-shadow:0 0 4px rgba(255,170,0,0.5); }
+.commit-msg .auto-tag { color:var(--red-dim); font-size:10px; }
+.commit-author { font-size:9px; color:var(--red-dim); text-align:right; white-space:nowrap; }
+
+/* ── 로딩 / 에러 ── */
+.status-msg { font-size:11px; letter-spacing:3px; color:var(--red-dim); padding:20px; text-align:center; }
+.error-msg { color:var(--red); }
+
+/* ── 하단 갱신 바 ── */
+.refresh-bar {
+  position:fixed; bottom:0; left:0; right:0; height:2px; background:var(--red-dark);
+}
+.refresh-fill { height:100%; background:var(--amber); box-shadow:0 0 6px var(--amber); width:0%; transition:width 1s linear; }
+
+/* ── 반응형 ── */
+@media(max-width:600px) {
+  .commit-row { grid-template-columns:1fr; }
+  .commit-author { text-align:left; }
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="logo">M+N</div>
+  <div class="header-center">GIT ACTIVITY MONITOR</div>
+  <div class="header-right">
+    <span><span class="dot"></span>LIVE</span>
+    <span id="clock">--:--:--</span>
+    <span id="last-update" style="color:rgba(255,100,0,0.5)">—</span>
+  </div>
+</div>
+
+<!-- 토큰 입력 -->
+<div id="token-screen">
+  <div class="token-box">
+    <h2>◈ GITHUB AUTH</h2>
+    <p>Private 레포 접근을 위한 GitHub Token 필요<br>
+    Settings → Developer settings → Fine-grained tokens<br>
+    (Contents: Read-only 권한만 필요)</p>
+    <input class="token-input" id="token-input" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+    <button class="token-btn" onclick="submitToken()">▶ CONNECT</button>
+    <div class="token-hint">토큰은 이 브라우저 세션에만 메모리에 보관됩니다</div>
+  </div>
+</div>
+
+<!-- 메인 앱 -->
+<div id="app">
+  <div class="repo-tabs" id="repo-tabs"></div>
+  <div class="stats-row" id="stats-row"></div>
+  <div class="section-title">◈ RECENT COMMITS</div>
+  <div class="commit-list" id="commit-list"><div class="status-msg">로딩 중...</div></div>
+</div>
+
+<!-- 갱신 바 -->
+<div class="refresh-bar"><div class="refresh-fill" id="refresh-fill"></div></div>
+
+<script>
+// ── 설정 ──────────────────────────────────────────────────────
+const REPOS = [
+  { owner:'Charles-Teamplayer', repo:'TP_skills',    label:'TP_SKILLS' },
+  { owner:'Charles-Teamplayer', repo:'TP_newIMSMS',  label:'IMSMS' },
+  { owner:'Charles-Teamplayer', repo:'TP_distAPP',   label:'DIST_APP' },
+  { owner:'Charles-Teamplayer', repo:'TP_MindMap_AutoCC', label:'MINDMAP' },
+];
+const POLL_SEC = 60;
+
+// ── 상태 ──────────────────────────────────────────────────────
+let _token = '';
+let _activeRepo = 0;
+let _pollTimer = null;
+let _fillTimer = null;
+let _countdown = POLL_SEC;
+
+// URL param에서 토큰 자동 로드
+const _params = new URLSearchParams(location.search);
+const _paramToken = _params.get('token') || '';
+
+// ── 시계 ──────────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
+}, 1000);
+
+// ── 토큰 처리 ─────────────────────────────────────────────────
+function submitToken() {
+  const val = document.getElementById('token-input').value.trim();
+  if (!val) return;
+  _token = val;
+  startApp();
+}
+
+function startApp() {
+  document.getElementById('token-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  buildTabs();
+  loadCommits();
+  startPoll();
+}
+
+if (_paramToken) {
+  _token = _paramToken;
+  startApp();
+}
+
+// ── 탭 ────────────────────────────────────────────────────────
+function buildTabs() {
+  const el = document.getElementById('repo-tabs');
+  el.innerHTML = REPOS.map((r, i) => `
+    <button class="repo-tab${i===0?' active':''}" onclick="switchRepo(${i})">${r.label}</button>
+  `).join('');
+}
+
+function switchRepo(i) {
+  _activeRepo = i;
+  document.querySelectorAll('.repo-tab').forEach((el, idx) => {
+    el.classList.toggle('active', idx === i);
+  });
+  loadCommits();
+}
+
+// ── GitHub API ────────────────────────────────────────────────
+async function ghFetch(path) {
+  const headers = { 'Accept': 'application/vnd.github.v3+json' };
+  if (_token) headers['Authorization'] = `token ${_token}`;
+  const res = await fetch(`https://api.github.com${path}`, { headers });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+// ── 커밋 로드 ────────────────────────────────────────────────
+async function loadCommits() {
+  const { owner, repo } = REPOS[_activeRepo];
+  const listEl = document.getElementById('commit-list');
+  const statsEl = document.getElementById('stats-row');
+
+  try {
+    const [commits, repoInfo] = await Promise.all([
+      ghFetch(`/repos/${owner}/${repo}/commits?per_page=30`),
+      ghFetch(`/repos/${owner}/${repo}`),
+    ]);
+
+    // 통계 카드
+    const latest = commits[0];
+    const latestTime = latest ? timeAgo(latest.commit.committer.date) : '—';
+    statsEl.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">LATEST COMMIT</div>
+        <div class="stat-value" style="font-size:13px;letter-spacing:1px">${latestTime}</div>
+        <div class="stat-sub">${latest ? latest.sha.slice(0,7) : '—'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">DEFAULT BRANCH</div>
+        <div class="stat-value" style="font-size:16px">${repoInfo.default_branch || 'main'}</div>
+        <div class="stat-sub">${repoInfo.open_issues_count || 0} open issues</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">LAST PUSH</div>
+        <div class="stat-value" style="font-size:13px;letter-spacing:1px">${timeAgo(repoInfo.pushed_at)}</div>
+        <div class="stat-sub">${repoInfo.size} KB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">LOADED COMMITS</div>
+        <div class="stat-value">${commits.length}</div>
+        <div class="stat-sub">per_page=30</div>
+      </div>
+    `;
+
+    // 커밋 리스트
+    listEl.innerHTML = commits.map((c, i) => {
+      const msg = c.commit.message.split('\n')[0];
+      const sha = c.sha.slice(0,7);
+      const date = c.commit.committer.date;
+      const author = c.commit.author.name;
+      const isAuto = msg.startsWith('Auto-commit');
+      const typeMatch = msg.match(/^(feat|fix|docs|refactor|chore|style|test)(\(.*?\))?:/);
+      let displayMsg = msg;
+      if (typeMatch) {
+        displayMsg = `<span class="type-tag">${typeMatch[0]}</span>${msg.slice(typeMatch[0].length)}`;
+      } else if (isAuto) {
+        displayMsg = `<span class="auto-tag">${msg}</span>`;
+      }
+      return `
+      <div class="commit-row${i===0?' latest':''}">
+        <div class="commit-sha">
+          <div class="sha-code">${sha}</div>
+          <div class="commit-time">${timeAgo(date)}</div>
+          <div class="commit-time">${formatDate(date)}</div>
+        </div>
+        <div class="commit-msg">${displayMsg}</div>
+        <div class="commit-author">${escHtml(author)}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('last-update').textContent = 'SYNCED ' + new Date().toTimeString().slice(0,8);
+  } catch(e) {
+    listEl.innerHTML = `<div class="status-msg error-msg">⚠ ${e.message}</div>`;
+  }
+}
+
+// ── 자동 갱신 ────────────────────────────────────────────────
+function startPoll() {
+  if (_pollTimer) clearInterval(_pollTimer);
+  _pollTimer = setInterval(loadCommits, POLL_SEC * 1000);
+
+  // 갱신 바 카운트다운
+  if (_fillTimer) clearInterval(_fillTimer);
+  _countdown = POLL_SEC;
+  const fillEl = document.getElementById('refresh-fill');
+  fillEl.style.transition = 'none';
+  fillEl.style.width = '0%';
+  _fillTimer = setInterval(() => {
+    _countdown--;
+    const pct = ((POLL_SEC - _countdown) / POLL_SEC) * 100;
+    fillEl.style.transition = 'width 1s linear';
+    fillEl.style.width = pct + '%';
+    if (_countdown <= 0) {
+      _countdown = POLL_SEC;
+      fillEl.style.transition = 'none';
+      fillEl.style.width = '0%';
+    }
+  }, 1000);
+}
+
+// ── 유틸 ─────────────────────────────────────────────────────
+function timeAgo(iso) {
+  const diff = (Date.now() - new Date(iso)) / 1000;
+  if (diff < 60)   return Math.floor(diff) + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+function formatDate(iso) {
+  return new Date(iso).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function escHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
