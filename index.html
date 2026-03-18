@@ -182,6 +182,7 @@ let _countdown = POLL_SEC;
 // URL param에서 토큰 자동 로드
 const _params = new URLSearchParams(location.search);
 const _paramToken = _params.get('token') || '';
+const _paramRepo = parseInt(_params.get('repo') || '0', 10);
 
 // ── 시계 ──────────────────────────────────────────────────────
 setInterval(() => {
@@ -206,6 +207,7 @@ function startApp() {
 
 if (_paramToken) {
   _token = _paramToken;
+  _activeRepo = _paramRepo;
   startApp();
 }
 
@@ -213,7 +215,7 @@ if (_paramToken) {
 function buildTabs() {
   const el = document.getElementById('repo-tabs');
   el.innerHTML = REPOS.map((r, i) => `
-    <button class="repo-tab${i===0?' active':''}" onclick="switchRepo(${i})">${r.label}</button>
+    <button class="repo-tab${i===_activeRepo?' active':''}" onclick="switchRepo(${i})">${r.label}</button>
   `).join('');
 }
 
